@@ -41,10 +41,17 @@ FMAX_FFT_PICK = 5.0
 # Plot cap fallback if auto cap fails
 FMAX_PLOT_FALLBACK = 10.0
 
-# STFT settings (tune if galih says)
-NPERSEG = 1024
-NOVERLAP = 768
+#stft settings defined in seconds 
+WINDOW_SEC = 2.0 #seconds per stft window
+OVERLAP_SEC = 1.75 #seconds overlap
 
+
+#log power epsilon floor
+EPS = 1e-12
+
+#fixed colour scale for comparisons (edit so use -70 and -10 for no epsilon)
+COLOUR_LIM_MIN = -85
+COLOUR_LIM_MAX = -35
 
 # -----------------------------
 # DATA LOADING
@@ -129,9 +136,30 @@ def auto_fmax_plot(fe: float | None) -> float:
 
 
 # -----------------------------
+# STFT PARAM CONVERSION FROM SECONDS TO SAMPLES
+# -----------------------------
+
+def stft_params_from_seconds(fs: float, window_sec: float, overlap_sec: float):
+    """
+    Convert time-based STFT settings to sample counts.
+    Ensures:
+      - nperseg >= 8
+      - 0 <= noverlap < nperseg
+    """
+    nperseg = int(round(window_sec * fs))
+    noverlap = int(round(overlap_sec * fs))
+
+    nperseg = max(nperseg, 8)
+    noverlap = max(noverlap, 0)
+    if noverlap >= nperseg:
+        noverlap = nperseg - 1
+
+    return nperseg, noverlap
+
+# -----------------------------
 # MOVING FFT (STFT)
 # -----------------------------
-def moving_fft(x: np.ndarray, fs: float, nperseg: int = 1024, noverlap: int = 768):
+def moving_fft(x: np.ndarray, fs: float, nperseg: int, noverlap: int):
     """
     Returns:
       f (Hz), tt (s), Z (log power dB)
@@ -149,7 +177,7 @@ def moving_fft(x: np.ndarray, fs: float, nperseg: int = 1024, noverlap: int = 76
     )
 
     P = np.abs(Zxx) ** 2
-    Z = 10.0 * np.log10(P + 1e-12)
+    Z = 10.0 * np.log10(P + EPS)
     return f, tt, Z
 
 
@@ -161,6 +189,8 @@ def plot_time_freq(
     outpath: Path,
     fmax: float,
     freq_lines=None,
+    vmin: float = COLOUR_LIM_MIN,
+    vmax: float = COLOUR_LIM_MAX,
 ):
     """
     freq_lines: list of (frequency_hz, label) tuples
@@ -173,7 +203,7 @@ def plot_time_freq(
     outpath.parent.mkdir(parents=True, exist_ok=True)
 
     plt.figure(figsize=(10, 6))
-    plt.pcolormesh(tt, f, Z, shading="auto")
+    plt.pcolormesh(tt, f, Z, shading="auto", vmin = vmin, vmax = vmax)
     plt.xlabel("Time (s)")
     plt.ylabel("Frequency (Hz)")
     plt.title(title)
@@ -202,6 +232,9 @@ def main():
     print("Current working directory:", Path.cwd())
     print("Dataset dir:", DATASET_DIR.resolve())
     print("Output dir:", OUT_DIR.resolve())
+    print()
+    print(f"STFT window_sec={WINDOW_SEC:.3f}s overlap_sec={OVERLAP_SEC:.3f}s EPS={EPS:g}")
+    print(f"ColoUr scale vmin={COLOUR_LIM_MIN} vmax={COLOUR_LIM_MAX}")
     print()
 
     csv_rows = [["case", "wind", "struct", "model", "file", "fe_hz", "fmax_plot_hz"]]
@@ -247,10 +280,15 @@ def main():
                             (3 * fe, "3 f_e"),
                         ]
 
+                    # time-based STFT parameters
+                    nperseg, noverlap = stft_params_from_seconds(
+                        fs=fs, window_sec=WINDOW_SEC, overlap_sec=OVERLAP_SEC
+                    )
+
                     # STFT
-                    f, tt, Z_alpha = moving_fft(alpha, fs, nperseg=NPERSEG, noverlap=NOVERLAP)
-                    _, _, Z_cl = moving_fft(cl, fs, nperseg=NPERSEG, noverlap=NOVERLAP)
-                    _, _, Z_cd = moving_fft(cd, fs, nperseg=NPERSEG, noverlap=NOVERLAP)
+                    f, tt, Z_alpha = moving_fft(alpha, fs, nperseg=nperseg, noverlap=noverlap)
+                    _, _, Z_cl = moving_fft(cl, fs, nperseg=nperseg, noverlap=noverlap)
+                    _, _, Z_cd = moving_fft(cd, fs, nperseg=nperseg, noverlap=noverlap)
 
                     base = OUT_DIR / case / wind / struct / model
 
@@ -284,6 +322,11 @@ def main():
                         str(fpath),
                         "" if fe is None else f"{fe:.6f}",
                         f"{fmax_plot:.3f}",
+                        f"{fs:.6f}",
+                        str(nperseg),
+                        str(noverlap),
+                        f"{WINDOW_SEC:.3f}",
+                        f"{OVERLAP_SEC:.3f}",
                     ])
 
                     wrote_anything = True
