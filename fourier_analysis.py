@@ -10,13 +10,21 @@ from scipy.signal import stft, find_peaks
 # -----------------------------
 REPO_ROOT = Path(__file__).resolve().parent
 
-DATASET_DIR = (
+# FLEX uses galih data
+DATASET_DIR_FLEX = (
     REPO_ROOT
     / "Dataset"
     / "EdgewiseExcited_IEA15MW_S809"
     / "AeroParameters_at_93m"
 )
 
+# RIGID uses Our_DynStall_Model data
+DATASET_DIR_RIGID = (
+    REPO_ROOT
+    / "Dataset"
+    / "Our_DynStall_Model"
+    / "AeroParameters_at_93m"
+)
 OUT_DIR = REPO_ROOT / "moving_fft_outputs"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -343,7 +351,10 @@ def plot_combined_time_freq(
 # -----------------------------
 def main():
     print("Current working directory:", Path.cwd())
-    print("Dataset dir:", DATASET_DIR.resolve())
+    #print("Dataset dir:", DATASET_DIR.resolve())
+    print("Flex dataset dir:", DATASET_DIR_FLEX.resolve())
+    print("Rigid dataset dir:", DATASET_DIR_RIGID.resolve())
+
     print("Output dir:", OUT_DIR.resolve())
     print()
     print(f"STFT window_sec={WINDOW_SEC:.3f}s overlap_sec={OVERLAP_SEC:.3f}s EPS={EPS:g}")
@@ -355,7 +366,8 @@ def main():
     print(f"  CD_NORM = {CD_NORM:.6f}")
     print()
 
-    csv_rows = [["case", "wind", "struct", "model", "file", "fe_hz", "fmax_plot_hz"]]
+    csv_rows = [["case", "wind", "struct", "model", "dataset_root", "file", "fe_hz", "fmax_plot_hz"]]
+
 
     wrote_anything = False
     missing_count = 0
@@ -365,7 +377,10 @@ def main():
             for struct in STRUCTS:
                 for model in MODELS:
                     fname = f"{struct}_{model}.dat"
-                    fpath = DATASET_DIR / case / wind / fname
+                    dataset_root = DATASET_DIR_FLEX if struct == "Flex" else DATASET_DIR_RIGID
+                    fpath = dataset_root / case / wind / fname
+                    print(f"[{struct}] loading from: {fpath}")
+
 
                     if not fpath.exists():
                         missing_count += 1
@@ -448,19 +463,18 @@ def main():
                     )
 
                     csv_rows.append([
-                        case,
-                        wind,
-                        struct,
-                        model,
-                        str(fpath),
-                        "" if fe is None else f"{fe:.6f}",
-                        f"{fmax_plot:.3f}",
-                        f"{fs:.6f}",
-                        str(nperseg),
-                        str(noverlap),
-                        f"{WINDOW_SEC:.3f}",
-                        f"{OVERLAP_SEC:.3f}",
-                    ])
+                    case, wind, struct, model,
+                    str(dataset_root),
+                    str(fpath),
+                    "" if fe is None else f"{fe:.6f}",
+                    f"{fmax_plot:.3f}",
+                    f"{fs:.6f}",
+                    str(nperseg),
+                    str(noverlap),
+                    f"{WINDOW_SEC:.3f}",
+                    f"{OVERLAP_SEC:.3f}",
+                ])
+
 
                     wrote_anything = True
 
