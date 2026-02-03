@@ -418,7 +418,7 @@ class OyeDynamicStallCL:
         cl_inv = float(cl_alpha * (alpha_rad - alpha0))
 
         # fully separated
-        cl_fs = self._cl_fully_separated(alpha_rad)
+        cl_fs = cl_st
 
         # steady separation function f_st derived from Kirchhoff relation
         denom = max(abs(cl_inv), 1e-9)
@@ -1260,5 +1260,6 @@ if __name__ == "__main__":
             {"ct": rB["ct"], "power": rB["power"]},
             title=f"{name}: CT and Power (Tier-B)"
         )
+
 
 
