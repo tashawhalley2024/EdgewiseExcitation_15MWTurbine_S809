@@ -339,7 +339,7 @@ class NoDynamicStall:
     def reset(self) -> None:
         pass
 
-    def step(self, alpha_rad: float, alpha_dot_rad: float, U: float, dt: float, polar: Polar) -> Dict[str, float]:
+    def step(self, alpha_rad: float, alpha_dot_rad: float, U: float, dt: float, polar: Polar, IAG: bool) -> Dict[str, float]:
         cl = polar.cl(alpha_rad)
         cd = polar.cd(alpha_rad)
         ct = ct_from_cl_cd(cl, cd, alpha_rad)
@@ -402,7 +402,7 @@ class OyeDynamicStallCL:
         # Kirchhoff-like fully separated lift model
         return float(2.0 * np.sin(alpha_rad) * np.cos(alpha_rad))
 
-    def step(self, alpha_rad: float, alpha_dot_rad: float, U: float, dt: float, polar: Polar) -> Dict[str, float]:
+    def step(self, alpha_rad: float, alpha_dot_rad: float, U: float, dt: float, polar: Polar, IAG: bool) -> Dict[str, float]:
         self._ensure_cached(polar)
 
         Ueff = max(U, 0.1)
@@ -417,14 +417,16 @@ class OyeDynamicStallCL:
         # inviscid extrapolation near linear region
         cl_inv = float(cl_alpha * (alpha_rad - alpha0))
 
-        # fully separated
-        cl_fs = cl_st
+
 
         # steady separation function f_st derived from Kirchhoff relation
         denom = max(abs(cl_inv), 1e-9)
         ratio = max(cl_st / denom, 0.0)
         f_st = (2.0 * np.sqrt(ratio) - 1.0) ** 2
         f_st = float(np.clip(f_st, 0.0, 1.0))
+
+        # fully separated
+        cl_fs = (cl_st - (cl_inv * f_st)) / (1 - f_st)
 
         # lag time constant Tf = Tf0 * Tu with Tu = c/(2U)
         # We do not have c here directly; we treat Tf0 as "effective" in seconds via user’s dt/U scaling.
@@ -511,6 +513,8 @@ class LeishmanBeddoesFirstOrder:
     CNv: float = 0.0
     Cv_prev: float = 0.0
     fn_prev: float = 1.0
+    
+    alpha_fit_window_deg: float = 8.0
 
     prev_alpha: Optional[float] = None
     prev_dalpha: float = 0.0
@@ -537,7 +541,7 @@ class LeishmanBeddoesFirstOrder:
 
     def _init_from_polar(self, polar: Polar) -> None:
         self._dCN_dalpha = float(dcn_dalpha_est(polar, 0.0))
-
+        print (self._dCN_dalpha)
         if isinstance(polar, AeroDynPolar):
             a0_deg = estimate_alpha0_linear(polar, window_deg=8.0)
             self._alpha0_visc = float(np.deg2rad(a0_deg))
@@ -546,13 +550,13 @@ class LeishmanBeddoesFirstOrder:
 
         self._alpha0_inv = float(self._alpha0_visc)
 
-    def step(self, alpha_rad: float, alpha_dot_rad: float, U: float, dt: float, polar: Polar) -> Dict[str, float]:
+    def step(self, alpha_rad: float, alpha_dot_rad: float, U: float, dt: float, polar: Polar, IAG: bool) -> Dict[str, float]:
         if self._dCN_dalpha is None:
             self._init_from_polar(polar)
 
         Ueff = max(U, 0.1)
 
-        dCN = float(self._dCN_dalpha)
+        dCN = estimate_cl_alpha(polar, self.alpha_fit_window_deg)
         alpha0_inv = float(self._alpha0_inv)
         alpha0_visc = float(self._alpha0_visc)
 
@@ -624,9 +628,15 @@ class LeishmanBeddoesFirstOrder:
         CN_crit = float(cn_from_cl_cd(cl_crit, cd_crit, self.alpha_crit_rad))
 
         ds_v = ds
-
+        
+        
+        if IAG == True:
+            ds_new = 0.45 * Ueff * dt / max(self.c, 1e-12)
+        else:
+            ds_new = Ueff * dt / max(self.c, 1e-12)
+        
         if CPN1 > CN_crit:
-            self.tau_v = self.tau_v + 0.33 * ds_v
+            self.tau_v = self.tau_v + ds_new
         elif (CPN1 < CN_crit) and (dalpha >= 0.0):
             self.tau_v = 0.0
 
@@ -824,7 +834,7 @@ class IAGDynamicStallCL:
         self._dCN_dalpha = None
         self.prev_CPN = 0.0
 
-    def step(self, alpha_rad: float, alpha_dot_rad: float, U: float, dt: float, polar: Polar) -> Dict[str, float]:
+    def step(self, alpha_rad: float, alpha_dot_rad: float, U: float, dt: float, polar: Polar, IAG: bool) -> Dict[str, float]:
         if self._lb is None or self._d2 is None:
             self.reset()
 
@@ -833,7 +843,8 @@ class IAGDynamicStallCL:
         dCN = float(self._dCN_dalpha)
 
         # First-order LB
-        o1 = self._lb.step(alpha_rad, alpha_dot_rad, U, dt, polar)
+        IAG = True
+        o1 = self._lb.step(alpha_rad, alpha_dot_rad, U, dt, polar, IAG)
         CN1 = float(o1["cn"])
 
         o2 = self._d2.step(alpha_rad, U, dt, polar)
@@ -1020,9 +1031,11 @@ def run_pitch_sine(
     cn = np.zeros_like(t)
     ct = np.zeros_like(t)
     cm = np.zeros_like(t)
+    
+    IAG = False
 
     for i in range(len(t)):
-        out = model.step(alpha[i], alpha_dot[i], U, dt, polar)
+        out = model.step(alpha[i], alpha_dot[i], U, dt, polar, IAG)
 
         cl[i] = out["cl"]
         cd[i] = out["cd"]
@@ -1260,6 +1273,8 @@ if __name__ == "__main__":
             {"ct": rB["ct"], "power": rB["power"]},
             title=f"{name}: CT and Power (Tier-B)"
         )
+
+
 
 
 
