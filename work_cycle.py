@@ -70,6 +70,7 @@ ALPHA_AMPLITUDE_RAD = ALPHA_AMPLITUDE_DEG * np.pi / 180
 ALPHA_NORM = ALPHA_AMPLITUDE_RAD
 CL_NORM = 2 * np.pi * ALPHA_AMPLITUDE_RAD
 CD_NORM = CL_NORM * np.sin(ALPHA_AMPLITUDE_RAD)
+CM_NORM = CL_NORM * (1/4)
 
 import sys
 sys.path.append('/DNV')
@@ -104,7 +105,7 @@ def work_per_cycle (cl,cd,cm):
         #integrate across data
         W = cl_value*chord+cd_value*chord+cm_value
 
-    return W
+        return W
 
 
 """def cm(cl:np.ndarray,
@@ -165,12 +166,9 @@ def main():
                     
                     wind_val = float(wind.replace("ms", ""))
 
-                    #work_data = w_cycle(cl, cd, alpha, wind_val, 0.6, cm(cl,cd,0.6))
-
-                    #plt.plot(alpha,work_data)
-                    
-                    
-                    
+                              work_data =  work_per_cycle(cl,cd)
+                                        
+                                        
                                          
 
 if __name__ == "__main__":
