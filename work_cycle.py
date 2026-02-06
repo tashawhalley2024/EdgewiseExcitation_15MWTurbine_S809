@@ -115,8 +115,6 @@ from scipy import integrate
 import numpy as np
 import csv
 from pathlib import Path
-import os
-import pathlib
 
 
 directory = (REPO_ROOT / "Dataset" / "EdgewiseExcited_IEA15MW_S809" / "AeroParameters_at_93m" / "Polar_Instability_Resonance")
@@ -127,9 +125,8 @@ for n in directory.glob("*.dat"):
         data[n] = np.getfromtxt(datfile, delimiter=' ')
 
 def work_per_cycle (cl,cd,cm):
-
     
-
+    chord = 600
     for cm_value,cl_value,cd_value in cm,cl,cd:
         #integrate across data
         W = cl_value*chord+cd_value*chord+cm_value
@@ -137,9 +134,7 @@ def work_per_cycle (cl,cd,cm):
         return W
 
 def main():
-    csv_rows = [["case", "wind", "struct", "model", "file", "fe_hz", "fmax_plot_hz"]]
 
-    wrote_anything = False
     missing_count = 0
 
     for case in CASES:
@@ -160,12 +155,11 @@ def main():
 
                     # NORMALIsE the data
                     alpha, cl, cd, cm = normalise_data(alpha, cl, cd,cm)
-                    
-                    wind_val = float(wind.replace("ms", ""))
+    
 
                     work_data =  work_per_cycle(cl,cd,cm)
 
-                    plt.plot(alpha, work_data)                                      
+                    plt.plot(t, work_data)                                      
 
 if __name__ == "__main__":
     main()
