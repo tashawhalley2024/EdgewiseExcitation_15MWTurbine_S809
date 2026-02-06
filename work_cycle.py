@@ -95,15 +95,14 @@ data = {}
 for n in directory.glob("*.dat"):
     with open(n,newline='') as datfile:
         data[n] = np.getfromtxt(datfile, delimiter=' ')
-        for row in data[n]:
-            print (row[:1])
 
-def work_per_cycle (cm):
+def work_per_cycle (cl,cd,cm):
 
-    for cm_value in data:
+    
+
+    for cm_value,cl_value,cd_value in cm,cl,cd:
         #integrate across data
-
-        W = 1
+        W = cl_value*chord+cd_value*chord+cm_value
 
     return W
 
@@ -169,17 +168,10 @@ def main():
                     #work_data = w_cycle(cl, cd, alpha, wind_val, 0.6, cm(cl,cd,0.6))
 
                     #plt.plot(alpha,work_data)
-
-                    for n in directory.rglob("*.dat"):
-                        
-                        data = np.loadtxt(n)
-                        print(n)
-                        print(data[:5, 1:])  # first column, first 5 rows
-
                     
                     
                     
-                        print("Directory exists:", directory.exists())                   
+                                         
 
 if __name__ == "__main__":
     main()
