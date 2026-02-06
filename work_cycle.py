@@ -74,11 +74,40 @@ CM_NORM = CL_NORM * (1/4)
 
 import sys
 sys.path.append('/DNV')
-from fourier_analysis import load_dat_file
 
-from fourier_analysis import normalise_data
+def load_dat_file(filepath: Path):
+    """
+    File format:
+    # time[s], AoA[rad], cl[-], cd[-], cm[-]
+    """
+    data = np.loadtxt(filepath, comments="#")
+    t = data[:, 0]
+    alpha = data[:, 1]
+    cl = data[:, 2]
+    cd = data[:, 3]
+    cm = data[:, 4]
+    return t, alpha, cl, cd, cm
 
 #reuse format from fourier analysis
+
+def normalise_data(alpha: np.ndarray, cl: np.ndarray, cd: np.ndarray, cm: np.ndarray):
+    """
+    Normalise alpha, cl, and cd by their respective normalisation constants.
+    
+    Args:
+        alpha: Angle of attack in radians
+        cl: Lift coefficient
+        cd: Drag coefficient
+    
+    Returns:
+        Normalised alpha, cl, cd
+    """
+    alpha_normalised = alpha / ALPHA_NORM
+    cl_normalised = cl / CL_NORM
+    cd_normalised = cd / CD_NORM
+    cm_normalised = cm / CM_NORM
+    
+    return alpha_normalised, cl_normalised, cd_normalised, cm_normalised
 
 #from EdgewiseExcitation_15MWTurbine_S809.Dataset.Our_DynStall_Model.AeroParameters_at_93m.Polar_Instability_Resonance #here i want 10ms,20ms,30ms then Rigid_DeddoesIncomp, Rigid_IAGModel, Rigid_None, Rigid_Oye2
 
@@ -107,38 +136,6 @@ def work_per_cycle (cl,cd,cm):
 
         return W
 
-
-"""def cm(cl:np.ndarray,
-       cd: np.ndarray,
-       chord):
-    #fix this, how do i calculate it?
-    D=0
-    r= 0
-    
-    C= (cl+cd)/(chord**2 * (chord**2/(D*r)))
-    
-    return -0.3
-
-def w_cycle (cd: np.ndarray,
-             cl: np.ndarray, 
-             alpha: np.ndarray,
-             wind,
-             chord,
-             cm
-             ):
-    
-    rho = 1.225
-    q = 0.5 * rho * wind**2
-    S = 0.6
-    c = chord
-    
-    M = q * S * c * cm   # Nm
-    
-    # Work over time history
-    W = np.trapz(M, alpha)
-    
-    return W"""
-    
 def main():
     csv_rows = [["case", "wind", "struct", "model", "file", "fe_hz", "fmax_plot_hz"]]
 
@@ -158,18 +155,17 @@ def main():
 
                     print("Processing:", fpath)
 
-                    t, alpha, cl, cd = load_dat_file(fpath)
+                    t, alpha, cl, cd, cm = load_dat_file(fpath)
                     
 
                     # NORMALIsE the data
-                    alpha, cl, cd = normalise_data(alpha, cl, cd)
+                    alpha, cl, cd, cm = normalise_data(alpha, cl, cd,cm)
                     
                     wind_val = float(wind.replace("ms", ""))
 
-                              work_data =  work_per_cycle(cl,cd)
-                                        
-                                        
-                                         
+                    work_data =  work_per_cycle(cl,cd,cm)
+
+                    plt.plot(alpha, work_data)                                      
 
 if __name__ == "__main__":
     main()
