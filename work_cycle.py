@@ -184,6 +184,9 @@ def main():
                     plt.plot(t_binned,work_binned,label=model)
                     
                 plt.legend()
+                plt.title(f"{case} – Work per cycle vs time {wind}")
+                plt.ylabel('Work per Cycle (W) [non dimensionalised]')
+                plt.xlabel('time (t) [s]')
                 plt.show()
 
 if __name__ == "__main__":
