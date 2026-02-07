@@ -163,6 +163,9 @@ def main():
 
                     t_binned,work_binned = work_per_cycle(cl,cd,cm,t,alpha, pitch_center_x,pitch_center_y,int_range,model)                                   
 
+                    plt.plot(t_binned,work_binned,label=model)
+                    plt.legend()
+
 if __name__ == "__main__":
     main()
     
