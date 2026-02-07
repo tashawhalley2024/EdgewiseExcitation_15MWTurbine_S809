@@ -11,6 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import stft, find_peaks
 
+from scipy.integrate import simpson
+
 # -----------------------------
 # PATHS
 # -----------------------------
@@ -125,10 +127,10 @@ def work_per_cycle (cl,cd,cm,t,alpha,pitch_centre_x,pitch_centre_y,int_range,mod
     i_high = n_pts_each_cycle
     for i in range(0,N_Integrate):
         t_mean = 0.5*(t[i_low]+t[i_high-1])
-        work_i = integrate.simps(M[i_low:i_high], alpha_rad[i_low:i_high])
+        work_i = integrate.simpson(M[i_low:i_high], alpha_rad[i_low:i_high])
 
         i_low = i_high
-        i_high = i:low +n_pts_each_cycle
+        i_high = i_low +n_pts_each_cycle
 
     return t_binned,work_binned
 
@@ -155,7 +157,7 @@ def main():
                     t, alpha, cl, cd, cm = load_dat_file(fpath)
 
 
-                    excitation = 0.687 Hz
+                    excitation = 0.687 
                     int_range = 1/excitation
                     chord = 2.771723
                     pitch_center_x = 0/chord
