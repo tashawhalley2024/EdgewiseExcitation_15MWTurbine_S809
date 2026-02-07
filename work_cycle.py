@@ -115,7 +115,23 @@ def work_per_cycle (cl,cd,cm,t,alpha,pitch_centre_x,pitch_centre_y,int_range,mod
     #calculate total moment by pitch moment+force x distance
     M = cm +Cy*pitch_centre_x+Cx*pitch_centre_y
 
-    
+    #find integral over each cycle
+    N_Integrate = int((t[-1]-t[0])/int_range)
+    n_pts_each_cycle = int(len(t)/N_Integrate)
+
+    t_binned = ()
+    work_binned = ()
+    i_low =0
+    i_high = n_pts_each_cycle
+    for i in range(0,N_Integrate):
+        t_mean = 0.5*(t[i_low]+t[i_high-1])
+        work_i = integrate.simps(M[i_low:i_high], alpha_rad[i_low:i_high])
+
+        i_low = i_high
+        i_high = i:low +n_pts_each_cycle
+
+    return t_binned,work_binned
+
     
     
 
@@ -137,11 +153,15 @@ def main():
                     print("Processing:", fpath)
 
                     t, alpha, cl, cd, cm = load_dat_file(fpath)
-    
 
-                    work_data =  work_per_cycle(cl,cd,cm)
 
-                    plt.plot(t, work_data)                                      
+                    excitation = 0.687 Hz
+                    int_range = 1/excitation
+                    chord = 2.771723
+                    pitch_center_x = 0/chord
+                    pitch_center_y = 0/chord
+
+                    t_binned,work_binned = work_per_cycle(cl,cd,cm,t,alpha, pitch_center_x,pitch_center_y,int_range,model)                                   
 
 if __name__ == "__main__":
     main()
