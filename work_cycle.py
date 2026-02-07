@@ -114,12 +114,21 @@ def work_per_cycle (cl,cd,cm,t,alpha,pitch_centre_x,pitch_centre_y,int_range,mod
     Cy = cl*np.cos(alpha_rad) + cd*np.sin(alpha_rad)
     Cx = cl*np.sin(alpha_rad) + cd *np.cos(alpha_rad)
 
+    
+
     #calculate total moment by pitch moment+force x distance
     M = cm +Cy*pitch_centre_x+Cx*pitch_centre_y
+
+    print('alpha_rad:',alpha_rad)
+    print('moment force:',M)
+    #plt.plot(alpha,M,label=model)
+    #plt.legend()
+    #plt.show()
 
     #find integral over each cycle
     N_Integrate = int((t[-1]-t[0])/int_range)
     n_pts_each_cycle = int(len(t)/N_Integrate)
+    print('n_pts_each_cycle:', n_pts_each_cycle)
 
     t_binned = ()
     work_binned = ()
@@ -129,8 +138,13 @@ def work_per_cycle (cl,cd,cm,t,alpha,pitch_centre_x,pitch_centre_y,int_range,mod
         t_mean = 0.5*(t[i_low]+t[i_high-1])
         work_i = integrate.simpson(M[i_low:i_high], alpha_rad[i_low:i_high])
 
+        print('work i :', work_i)
+
         i_low = i_high
         i_high = i_low +n_pts_each_cycle
+
+        t_binned = np.append(t_binned,t_mean)
+        work_binned = np.append(work_binned, work_i)
 
     return t_binned,work_binned
 
@@ -163,10 +177,14 @@ def main():
                     pitch_center_x = 0/chord
                     pitch_center_y = 0/chord
 
-                    t_binned,work_binned = work_per_cycle(cl,cd,cm,t,alpha, pitch_center_x,pitch_center_y,int_range,model)                                   
+                    print('int rage:', int_range)
 
+                    t_binned,work_binned = work_per_cycle(cl,cd,cm,t,alpha, pitch_center_x,pitch_center_y,int_range,model)                                   
+                    print('model:', model)
                     plt.plot(t_binned,work_binned,label=model)
-                    plt.legend()
+                    
+                plt.legend()
+                plt.show()
 
 if __name__ == "__main__":
     main()
