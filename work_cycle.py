@@ -90,25 +90,6 @@ def load_dat_file(filepath: Path):
 
 #reuse format from fourier analysis
 
-def normalise_data(alpha: np.ndarray, cl: np.ndarray, cd: np.ndarray, cm: np.ndarray):
-    """
-    Normalise alpha, cl, and cd by their respective normalisation constants.
-    
-    Args:
-        alpha: Angle of attack in radians
-        cl: Lift coefficient
-        cd: Drag coefficient
-    
-    Returns:
-        Normalised alpha, cl, cd
-    """
-    alpha_normalised = alpha / ALPHA_NORM
-    cl_normalised = cl / CL_NORM
-    cd_normalised = cd / CD_NORM
-    cm_normalised = cm / CM_NORM
-    
-    return alpha_normalised, cl_normalised, cd_normalised, cm_normalised
-
 #from EdgewiseExcitation_15MWTurbine_S809.Dataset.Our_DynStall_Model.AeroParameters_at_93m.Polar_Instability_Resonance #here i want 10ms,20ms,30ms then Rigid_DeddoesIncomp, Rigid_IAGModel, Rigid_None, Rigid_Oye2
 
 from scipy import integrate
@@ -124,14 +105,19 @@ for n in directory.glob("*.dat"):
     with open(n,newline='') as datfile:
         data[n] = np.getfromtxt(datfile, delimiter=' ')
 
-def work_per_cycle (cl,cd,cm):
-    
-    chord = 600
-    for cm_value,cl_value,cd_value in cm,cl,cd:
-        #integrate across data
-        W = cl_value*chord+cd_value*chord+cm_value
+def work_per_cycle (cl,cd,cm,t,alpha,pitch_centre_x,pitch_centre_y,int_range,model):
+    #convert to radians
+    alpha_rad = np.deg2rad(alpha)
+    #calculate x and y force componenets from lift and drag
+    Cy = cl*np.cos(alpha_rad) + cd*np.sin(alpha_rad)
+    Cx = cl*np.sin(alpha_rad) + cd *np.cos(alpha_rad)
 
-        return W
+    #calculate total moment by pitch moment+force x distance
+    M = cm +Cy*pitch_centre_x+Cx*pitch_centre_y
+
+    
+    
+    
 
 def main():
 
@@ -151,10 +137,6 @@ def main():
                     print("Processing:", fpath)
 
                     t, alpha, cl, cd, cm = load_dat_file(fpath)
-                    
-
-                    # NORMALIsE the data
-                    alpha, cl, cd, cm = normalise_data(alpha, cl, cd,cm)
     
 
                     work_data =  work_per_cycle(cl,cd,cm)
