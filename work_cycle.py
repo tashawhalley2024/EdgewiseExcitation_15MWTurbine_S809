@@ -40,7 +40,7 @@ CASES = [
 ]
 WINDS = ["10ms", "30ms", "50ms"]
 STRUCTS = ["Flex", "Rigid"]
-MODELS = ["None", "Oye2", "IAGModel", "BeddoesIncomp"]
+MODELS = ["Static", "Oye2", "IAGModel", "BeddoesIncomp"]
 
 # FFT pick range (Hz) for f_e detection from alpha
 FMAX_FFT_PICK = 5.0
@@ -187,6 +187,27 @@ def main():
                 plt.title(f"{case} – Work per cycle vs time {wind}")
                 plt.ylabel('Work per Cycle (W) [non dimensionalised]')
                 plt.xlabel('time (t) [s]')
+                plt.rcParams.update({
+    # Base text
+    "font.size": 18,
+
+    # Axes
+    "axes.titlesize": 24,
+    "axes.labelsize": 22,
+
+    # Ticks
+    "xtick.labelsize": 20,
+    "ytick.labelsize": 20,
+
+    # Legends / annotations
+    "legend.fontsize": 20,
+
+    # Figure-level titles (if used)
+    "figure.titlesize": 26,
+
+    # Line widths (helps freq lines stand out when downscaled)
+    "lines.linewidth": 1.5,
+})
                 plt.show()
 
 if __name__ == "__main__":
