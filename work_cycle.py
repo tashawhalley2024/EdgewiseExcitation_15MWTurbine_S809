@@ -37,7 +37,7 @@ FREQ_CSV = OUT_DIR / "excitation_frequencies.csv"
 CASES = [
     "Polar_Instability_Resonance",
 ]
-WINDS = ["30ms"]
+WINDS = ["10ms","30ms","50ms"]
 STRUCTS = ["Rigid"]
 MODELS = ["None", "Oye2", "IAGModel", "BeddoesIncomp"]
 
@@ -173,8 +173,8 @@ def main():
                     excitation = 0.687 
                     int_range = 1/excitation
                     chord = 2.771723
-                    pitch_center_x =  0/chord 
-                    pitch_center_y = 0/chord 
+                    pitch_center_x =  0.6/chord * np.sin(2*np.pi*excitation*t)
+                    pitch_center_y = 1.5/chord * np.sin(2*np.pi*excitation*t)
 
                     print('int rage:', int_range)
 
@@ -191,11 +191,11 @@ def main():
     "axes.labelsize": 25,
 
     # Ticks
-    "xtick.labelsize": 35,
-    "ytick.labelsize": 35,
+    "xtick.labelsize": 15,
+    "ytick.labelsize": 15,
 
     # Legends / annotations
-    "legend.fontsize": 10,
+    "legend.fontsize": 12,
 
     # Figure-level titles (if used)
     "figure.titlesize": 26,
@@ -204,11 +204,12 @@ def main():
     "lines.linewidth": 1.5,
 }) 
                     
-                plt.legend()
-                plt.title('Rigid Model Work per Cycle at 30m/s')
+                
+                plt.title(f"Dataset Work per Cycle at {wind}")
                 plt.ylabel('Negative Damping', fontsize=15)
                 plt.xlabel('Time (t) [s]', fontsize=15)
                 plt.tight_layout()
+                plt.legend()
                 plt.show()
 
 if __name__ == "__main__":
