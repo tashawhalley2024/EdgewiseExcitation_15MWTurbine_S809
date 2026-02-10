@@ -21,7 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 DATASET_DIR = (
     REPO_ROOT
     / "Dataset"
-    / "EdgewiseExcited_IEA15MW_S809"
+    / "Our_DynStall_Model"
     / "AeroParameters_at_93m"
 )
 
@@ -37,8 +37,8 @@ FREQ_CSV = OUT_DIR / "excitation_frequencies.csv"
 CASES = [
     "Polar_Instability_Resonance",
 ]
-WINDS = ["10ms", "30ms", "50ms"]
-STRUCTS = ["Flex", "Rigid"]
+WINDS = ["30ms"]
+STRUCTS = ["Rigid"]
 MODELS = ["None", "Oye2", "IAGModel", "BeddoesIncomp"]
 
 # FFT pick range (Hz) for f_e detection from alpha
@@ -173,14 +173,16 @@ def main():
                     excitation = 0.687 
                     int_range = 1/excitation
                     chord = 2.771723
-                    pitch_center_x = 0/chord
-                    pitch_center_y = 0/chord
+                    pitch_center_x =  0/chord 
+                    pitch_center_y = 0/chord 
 
                     print('int rage:', int_range)
 
                     t_binned,work_binned = work_per_cycle(cl,cd,cm,t,alpha, pitch_center_x,pitch_center_y,int_range,model)                                   
                     print('model:', model)
                     plt.plot(t_binned,work_binned,label=model)
+
+                    
                     
                 plt.legend()
                 plt.title(f"{fpath} – Work per cycle vs time {wind}")
