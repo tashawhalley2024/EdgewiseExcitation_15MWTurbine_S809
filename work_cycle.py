@@ -35,12 +35,11 @@ FREQ_CSV = OUT_DIR / "excitation_frequencies.csv"
 # CASES / OPTIONS
 # -----------------------------
 CASES = [
-    "Polar_Instability_OSU_Frequency",
     "Polar_Instability_Resonance",
 ]
 WINDS = ["10ms", "30ms", "50ms"]
 STRUCTS = ["Flex", "Rigid"]
-MODELS = ["Static", "Oye2", "IAGModel", "BeddoesIncomp"]
+MODELS = ["None", "Oye2", "IAGModel", "BeddoesIncomp"]
 
 # FFT pick range (Hz) for f_e detection from alpha
 FMAX_FFT_PICK = 5.0
@@ -184,7 +183,7 @@ def main():
                     plt.plot(t_binned,work_binned,label=model)
                     
                 plt.legend()
-                plt.title(f"{case} – Work per cycle vs time {wind}")
+                plt.title(f"{fpath} – Work per cycle vs time {wind}")
                 plt.ylabel('Work per Cycle (W) [non dimensionalised]')
                 plt.xlabel('time (t) [s]')
                 plt.rcParams.update({
