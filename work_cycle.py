@@ -182,33 +182,33 @@ def main():
                     print('model:', model)
                     plt.plot(t_binned,work_binned,label=model)
 
-                    
-                    
-                plt.legend()
-                plt.title(f"{fpath} – Work per cycle vs time {wind}")
-                plt.ylabel('Work per Cycle (W) [non dimensionalised]')
-                plt.xlabel('time (t) [s]')
-                plt.rcParams.update({
+                    plt.rcParams.update({
     # Base text
-    "font.size": 18,
+    "font.size": 24,
 
     # Axes
-    "axes.titlesize": 24,
-    "axes.labelsize": 22,
+    "axes.titlesize": 15,
+    "axes.labelsize": 25,
 
     # Ticks
-    "xtick.labelsize": 20,
-    "ytick.labelsize": 20,
+    "xtick.labelsize": 35,
+    "ytick.labelsize": 35,
 
     # Legends / annotations
-    "legend.fontsize": 20,
+    "legend.fontsize": 10,
 
     # Figure-level titles (if used)
     "figure.titlesize": 26,
 
     # Line widths (helps freq lines stand out when downscaled)
     "lines.linewidth": 1.5,
-})
+}) 
+                    
+                plt.legend()
+                plt.title('Rigid Model Work per Cycle at 30m/s')
+                plt.ylabel('Negative Damping', fontsize=15)
+                plt.xlabel('Time (t) [s]', fontsize=15)
+                plt.tight_layout()
                 plt.show()
 
 if __name__ == "__main__":
