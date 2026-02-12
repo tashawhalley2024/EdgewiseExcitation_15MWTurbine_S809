@@ -21,7 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 DATASET_DIR = (
     REPO_ROOT
     / "Dataset"
-    / "Our_DynStall_Model"
+    / "EdgewiseExcited_IEA15MW_S809"
     / "AeroParameters_at_93m"
 )
 
@@ -173,32 +173,33 @@ def main():
                     excitation = 0.687 
                     int_range = 1/excitation
                     chord = 2.771723
-                    pitch_center_x =  0.6/chord * np.sin(2*np.pi*excitation*t)
-                    pitch_center_y = 1.5/chord * np.sin(2*np.pi*excitation*t)
+                    pitch_center_x =  0/chord
+                    pitch_center_y = 0/chord
 
                     print('int rage:', int_range)
 
                     t_binned,work_binned = work_per_cycle(cl,cd,cm,t,alpha, pitch_center_x,pitch_center_y,int_range,model)                                   
                     print('model:', model)
+                    
                     plt.plot(t_binned,work_binned,label=model)
 
-                    plt.rcParams.update({
+                plt.rcParams.update({
     # Base text
     "font.size": 24,
 
     # Axes
-    "axes.titlesize": 15,
-    "axes.labelsize": 25,
+    "axes.titlesize": 22,
+    "axes.labelsize": 22,
 
     # Ticks
     "xtick.labelsize": 15,
     "ytick.labelsize": 15,
 
     # Legends / annotations
-    "legend.fontsize": 12,
+    "legend.fontsize": 15,
 
     # Figure-level titles (if used)
-    "figure.titlesize": 26,
+    "figure.titlesize": 20,
 
     # Line widths (helps freq lines stand out when downscaled)
     "lines.linewidth": 1.5,
@@ -206,9 +207,10 @@ def main():
                     
                 
                 plt.title(f"Dataset Work per Cycle at {wind}")
-                plt.ylabel('Negative Damping', fontsize=15)
-                plt.xlabel('Time (t) [s]', fontsize=15)
+                plt.ylabel('Negative Damping', fontsize=20)
+                plt.xlabel('Time (t) [s]', fontsize=20)
                 plt.tight_layout()
+                
                 plt.legend()
                 plt.show()
 
